@@ -50,7 +50,7 @@ Monta a moldura: topbar (logo, menus Arquivo/Visualizar/Ferramentas/Janelas/Ajud
 
 ### `tree.ts` — árvore espacial IFC (real)
 Renderiza IfcProject → IfcSite → IfcBuilding → IfcBuildingStorey → elementos, a partir do modelo carregado. Nós expansíveis.
-- **Fonte de dados:** estrutura espacial do modelo (`model.getSpatialStructure()` se disponível; senão derivar de categorias + relação `ContainedInStructure`). Confirmar a API disponível na linha 3.x durante a implementação.
+- **Fonte de dados:** `model.getSpatialStructure()`.
 - **Interação:** clique num elemento → callback `onSelect(localId)` → destaca no 3D + preenche propriedades. Busca (campo "Buscar no modelo…") filtra nós por nome — incluída se barata; senão placeholder.
 - **Depende de:** `Viewer.model`, callback de seleção.
 
@@ -84,9 +84,9 @@ Importar IFC → Viewer.loadIfc → model
 
 `main.ts` continua sendo o fio condutor: monta o shell, liga os módulos ao viewer.
 
-## Seleção no viewport (opcional, se barato)
+## Seleção no viewport
 
-Clique no 3D → raycast → localId → mesma rota `onSelect`. Usar o Highlighter do That Open se a API estiver acessível na linha 3.x sem fricção. Se custar, entregar só árvore→propriedades e marcar como follow-up. Não bloqueia o shell.
+Clique no 3D → raycast → localId → mesma rota `onSelect` (destaca + preenche propriedades + realça o nó na árvore). Usar o Highlighter/raycast do That Open (linha 3.x).
 
 ## Fora de escopo (YAGNI)
 
