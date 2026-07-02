@@ -2,6 +2,7 @@ import { Viewer } from "./ifc/app";
 import { buildSchedule } from "./ifc/schedule";
 import { Gantt } from "./ui/gantt";
 import { buildShell } from "./ui/shell";
+import { renderTree } from "./ui/tree";
 
 const root = document.getElementById("app")!;
 const h = buildShell(root);
@@ -25,6 +26,16 @@ h.fileInput.addEventListener("change", async () => {
 
   const tasks = await buildSchedule(model);
   h.fileNameEl.textContent = file.name;
+
+  const spatial = await viewer.getSpatial();
+  if (spatial) {
+    renderTree(h.treeEl, spatial, {
+      onSelect: (localId) => {
+        // ponytail: seleção completa (highlight + propriedades) vem na Task 3.
+        console.log("selecionado localId", localId);
+      },
+    });
+  }
 
   gantt.render(h.ganttEl, tasks, {
     onScrub: (_date, visible, hidden) => {
