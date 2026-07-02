@@ -13,12 +13,19 @@ const gantt = new Gantt();
 
 await viewer.init(h.viewportEl);
 
-viewer.canvas.addEventListener("click", async (e) => {
-  const localId = await viewer.pickAt(e.clientX, e.clientY);
-  if (localId == null) return;
+async function selectAndShow(localId: number) {
   await viewer.select(localId);
   const item = await viewer.getItemData(localId);
   renderProperties(h.propsEl, item);
+}
+
+viewer.canvas.addEventListener("click", async (e) => {
+  const localId = await viewer.pickAt(e.clientX, e.clientY);
+  if (localId == null) return;
+  // ponytail: tree has no "select row by id" API, so a viewport pick only
+  // clears the stale tree highlight instead of re-highlighting the row.
+  h.treeEl.querySelectorAll(".tree-node.selected").forEach((n) => n.classList.remove("selected"));
+  await selectAndShow(localId);
 });
 
 h.fileInput.addEventListener("change", async () => {
@@ -39,11 +46,7 @@ h.fileInput.addEventListener("change", async () => {
   const spatial = await viewer.getSpatial();
   if (spatial) {
     renderTree(h.treeEl, spatial, {
-      onSelect: async (localId) => {
-        await viewer.select(localId);
-        const item = await viewer.getItemData(localId);
-        renderProperties(h.propsEl, item);
-      },
+      onSelect: selectAndShow,
     });
   }
 

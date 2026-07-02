@@ -3,9 +3,7 @@ export interface ShellHandles {
   ganttEl: HTMLElement;
   treeEl: HTMLElement;
   propsEl: HTMLElement;
-  propsTabsEl: HTMLElement;
   fileInput: HTMLInputElement;
-  statusEl: HTMLElement;
   fileNameEl: HTMLElement;
 }
 
@@ -116,13 +114,9 @@ export function buildShell(root: HTMLElement): ShellHandles {
   propsEl.innerHTML = `<p class="empty">Selecione um elemento.</p>`;
   right.append(rightHead, propsTabsEl, propsEl);
 
-  // status oculto (compat com main.ts)
-  const statusEl = el("span", "");
-  statusEl.hidden = true;
+  root.append(topbar, rail, left, center, right);
 
-  root.append(topbar, rail, left, center, right, statusEl);
-
-  return { viewportEl, ganttEl, treeEl, propsEl, propsTabsEl, fileInput, statusEl, fileNameEl: fileName };
+  return { viewportEl, ganttEl, treeEl, propsEl, fileInput, fileNameEl: fileName };
 }
 
 function viewportOverlays(): HTMLElement {
