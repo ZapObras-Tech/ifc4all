@@ -1,9 +1,18 @@
 import * as OBC from "@thatopen/components";
 import type * as FRAGS from "@thatopen/fragments";
+import * as THREE from "three";
+import { RenderedFaces } from "@thatopen/fragments";
 
 const WORKER_URL =
   "https://thatopen.github.io/engine_fragment/resources/worker.mjs";
 const WASM_PATH = "https://unpkg.com/web-ifc@0.0.77/";
+
+const SELECT_MAT = {
+  color: new THREE.Color("#2563eb"),
+  renderedFaces: RenderedFaces.TWO,
+  opacity: 1,
+  transparent: false,
+};
 
 /**
  * Encapsula o setup do That Open Components: mundo 3D, loader de IFC e
@@ -15,6 +24,7 @@ export class Viewer {
   world!: OBC.SimpleWorld<OBC.SimpleScene, OBC.SimpleCamera, OBC.SimpleRenderer>;
   /** Último modelo carregado; suficiente para o escopo mono-modelo atual. */
   model?: FRAGS.FragmentsModel;
+  private selected?: number;
 
   async init(viewport: HTMLElement) {
     const worlds = this.components.get(OBC.Worlds);
@@ -76,6 +86,28 @@ export class Viewer {
     if (!this.model || localIds.length === 0) return;
     await this.model.setVisible(localIds, visible);
     await this.fragments.core.update(true);
+  }
+
+  /** Realça um elemento, resetando o realce anterior. */
+  async select(localId: number): Promise<void> {
+    if (!this.model) return;
+    if (this.selected != null) await this.model.resetHighlight([this.selected]);
+    await this.model.highlight([localId], SELECT_MAT);
+    this.selected = localId;
+    await this.fragments.core.update(true);
+  }
+
+  /** Atributos + PSets de um elemento (para o painel de propriedades). */
+  async getItemData(localId: number): Promise<any | null> {
+    if (!this.model) return null;
+    const [item] = await this.model.getItemsData([localId], {
+      attributesDefault: true,
+      relations: {
+        IsDefinedBy: { attributes: true, relations: true },
+        ContainedInStructure: { attributes: true, relations: false },
+      },
+    });
+    return item ?? null;
   }
 
   /** Estrutura espacial (IfcProject → Site → Building → Storey → elementos). */
