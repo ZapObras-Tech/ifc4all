@@ -13,6 +13,14 @@ const gantt = new Gantt();
 
 await viewer.init(h.viewportEl);
 
+viewer.canvas.addEventListener("click", async (e) => {
+  const localId = await viewer.pickAt(e.clientX, e.clientY);
+  if (localId == null) return;
+  await viewer.select(localId);
+  const item = await viewer.getItemData(localId);
+  renderProperties(h.propsEl, item);
+});
+
 h.fileInput.addEventListener("change", async () => {
   const file = h.fileInput.files?.[0];
   if (!file) return;

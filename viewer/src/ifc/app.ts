@@ -116,6 +116,23 @@ export class Viewer {
     return this.model.getSpatialStructure();
   }
 
+  /** Canvas do renderer, para eventos de ponteiro. */
+  get canvas(): HTMLCanvasElement {
+    return this.world.renderer!.three.domElement;
+  }
+
+  /** Raycast na posição do ponteiro → localId do elemento (ou null). */
+  async pickAt(clientX: number, clientY: number): Promise<number | null> {
+    if (!this.model) return null;
+    const mouse = new THREE.Vector2(clientX, clientY);
+    const res = await this.model.raycast({
+      camera: this.world.camera.three as THREE.PerspectiveCamera,
+      mouse,
+      dom: this.canvas,
+    });
+    return res?.localId ?? null;
+  }
+
   private async fitToModel() {
     if (!this.model) return;
     const boxes = await this.model.getBoxes();
