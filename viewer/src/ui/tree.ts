@@ -26,10 +26,21 @@ function humanize(cat: string): string {
   return "Ifc" + (KNOWN_COMPOUNDS[rest] ?? rest.replace(/^./, (c) => c.toUpperCase()));
 }
 
+/**
+ * Nós sem `category` são wrappers de agregação (ex.: aparecem como "#27" entre
+ * IfcProject e IfcSite). Não viram linha própria: seus filhos sobem pro pai,
+ * deixando a hierarquia padrão IfcProject ▸ IfcSite ▸ IfcBuilding ▸ …
+ */
+export function flatten(item: SpatialTreeItem): SpatialTreeItem[] {
+  const kids = (item.children ?? []).flatMap(flatten);
+  if (item.category == null) return kids; // hoist: descarta o wrapper
+  return [{ ...item, children: kids }];
+}
+
 /** Renderiza a árvore espacial. Clique num nó com localId dispara onSelect. */
 export function renderTree(container: HTMLElement, root: SpatialTreeItem, hooks: TreeHooks): void {
   container.innerHTML = "";
-  container.appendChild(node(root, hooks));
+  for (const item of flatten(root)) container.appendChild(node(item, hooks));
 }
 
 function node(item: SpatialTreeItem, hooks: TreeHooks): HTMLElement {

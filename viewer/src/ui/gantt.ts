@@ -1,8 +1,12 @@
 import type { ElementTask } from "../ifc/schedule";
 
 export interface GanttHooks {
-  /** Chamado ao mexer no scrubber: quem deve estar visível naquela data. */
-  onScrub: (date: Date, visibleIds: number[], hiddenIds: number[]) => void;
+  /**
+   * Chamado ao mexer no scrubber: quem deve estar visível naquela data.
+   * Emite as tarefas (não localIds soltos) porque com múltiplos modelos o
+   * localId só é único dentro de cada modelo — quem aplica precisa do model.
+   */
+  onScrub: (date: Date, visible: ElementTask[], hidden: ElementTask[]) => void;
 }
 
 interface Group {
@@ -186,10 +190,10 @@ export class Gantt {
       const t = this.domainStart + frac * (this.domainEnd - this.domainStart);
       const date = new Date(t);
       readout.textContent = fmt(date);
-      const visible: number[] = [];
-      const hidden: number[] = [];
+      const visible: ElementTask[] = [];
+      const hidden: ElementTask[] = [];
       for (const task of tasks) {
-        (task.start.getTime() <= t ? visible : hidden).push(task.localId);
+        (task.start.getTime() <= t ? visible : hidden).push(task);
       }
       hooks.onScrub(date, visible, hidden);
     };

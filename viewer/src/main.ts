@@ -1,5 +1,6 @@
+import type * as FRAGS from "@thatopen/fragments";
 import { Viewer } from "./ifc/app";
-import { buildSchedule } from "./ifc/schedule";
+import { buildSchedule, type ElementTask } from "./ifc/schedule";
 import { Gantt } from "./ui/gantt";
 import { buildShell } from "./ui/shell";
 import { renderProperties } from "./ui/properties";
@@ -28,32 +29,52 @@ viewer.canvas.addEventListener("click", async (e) => {
   await selectAndShow(localId);
 });
 
+// Aplica visibilidade a um lote de tarefas, agrupando por modelo (localId só é
+// único dentro de cada modelo, então cada setVisible precisa do model certo).
+function applyVisibility(tasks: ElementTask[], visible: boolean) {
+  const byModel = new Map<FRAGS.FragmentsModel, number[]>();
+  for (const t of tasks) {
+    (byModel.get(t.model) ?? byModel.set(t.model, []).get(t.model)!).push(t.localId);
+  }
+  for (const [model, ids] of byModel) viewer.setElementsVisible(model, ids, visible);
+}
+
 h.fileInput.addEventListener("change", async () => {
-  const file = h.fileInput.files?.[0];
-  if (!file) return;
-  h.fileNameEl.textContent = `carregando ${file.name}…`;
+  const files = [...(h.fileInput.files ?? [])];
+  if (files.length === 0) return;
+  h.fileNameEl.textContent = `carregando ${files.length} modelo(s)…`;
+  h.treeEl.innerHTML = "";
 
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const model = await viewer.loadIfc(bytes, file.name.replace(/\.ifc$/i, ""));
-  if (!model) {
-    h.fileNameEl.textContent = "falha ao carregar modelo";
-    return;
+  const allTasks: ElementTask[] = [];
+  const loaded: string[] = [];
+  for (const file of files) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const model = await viewer.loadIfc(bytes, file.name.replace(/\.ifc$/i, ""));
+    if (!model) continue;
+    loaded.push(file.name);
+    allTasks.push(...(await buildSchedule(model)));
+
+    const spatial = await viewer.getSpatial(model);
+    if (spatial) {
+      const sub = document.createElement("div");
+      h.treeEl.appendChild(sub);
+      // Fixa o model ativo antes de selecionar: select/getItemData operam sobre
+      // viewer.model, e cliques na árvore não passam pelo raycast que faria isso.
+      renderTree(sub, spatial, {
+        onSelect: (localId) => {
+          viewer.model = model;
+          selectAndShow(localId);
+        },
+      });
+    }
   }
 
-  const tasks = await buildSchedule(model);
-  h.fileNameEl.textContent = file.name;
+  h.fileNameEl.textContent = loaded.length ? loaded.join(", ") : "falha ao carregar modelo";
 
-  const spatial = await viewer.getSpatial();
-  if (spatial) {
-    renderTree(h.treeEl, spatial, {
-      onSelect: selectAndShow,
-    });
-  }
-
-  gantt.render(h.ganttEl, tasks, {
+  gantt.render(h.ganttEl, allTasks, {
     onScrub: (_date, visible, hidden) => {
-      viewer.setElementsVisible(hidden, false);
-      viewer.setElementsVisible(visible, true);
+      applyVisibility(hidden, false);
+      applyVisibility(visible, true);
     },
   });
 });

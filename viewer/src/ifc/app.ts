@@ -22,9 +22,9 @@ export class Viewer {
   readonly components = new OBC.Components();
   fragments!: OBC.FragmentsManager;
   world!: OBC.SimpleWorld<OBC.SimpleScene, OBC.SimpleCamera, OBC.SimpleRenderer>;
-  /** Último modelo carregado; suficiente para o escopo mono-modelo atual. */
+  /** Modelo ativo: o último carregado, ou o clicado no viewport (ver pickAt). */
   model?: FRAGS.FragmentsModel;
-  private selected?: number;
+  private selected?: { model: FRAGS.FragmentsModel; localId: number };
 
   async init(viewport: HTMLElement) {
     const worlds = this.components.get(OBC.Worlds);
@@ -81,19 +81,24 @@ export class Viewer {
     return this.model;
   }
 
-  /** 4D: mostra/oculta elementos por localId e força um redraw. */
-  async setElementsVisible(localIds: number[], visible: boolean) {
-    if (!this.model || localIds.length === 0) return;
-    await this.model.setVisible(localIds, visible);
+  /** 4D: mostra/oculta elementos de um modelo por localId e força um redraw. */
+  async setElementsVisible(
+    model: FRAGS.FragmentsModel,
+    localIds: number[],
+    visible: boolean,
+  ) {
+    if (localIds.length === 0) return;
+    await model.setVisible(localIds, visible);
     await this.fragments.core.update(true);
   }
 
   /** Realça um elemento, resetando o realce anterior. */
   async select(localId: number): Promise<void> {
     if (!this.model) return;
-    if (this.selected != null) await this.model.resetHighlight([this.selected]);
+    if (this.selected)
+      await this.selected.model.resetHighlight([this.selected.localId]);
     await this.model.highlight([localId], SELECT_MAT);
-    this.selected = localId;
+    this.selected = { model: this.model, localId };
     await this.fragments.core.update(true);
   }
 
@@ -111,9 +116,11 @@ export class Viewer {
   }
 
   /** Estrutura espacial (IfcProject → Site → Building → Storey → elementos). */
-  async getSpatial(): Promise<FRAGS.SpatialTreeItem | null> {
-    if (!this.model) return null;
-    return this.model.getSpatialStructure();
+  async getSpatial(
+    model: FRAGS.FragmentsModel | undefined = this.model,
+  ): Promise<FRAGS.SpatialTreeItem | null> {
+    if (!model) return null;
+    return model.getSpatialStructure();
   }
 
   /** Canvas do renderer, para eventos de ponteiro. */
@@ -121,16 +128,25 @@ export class Viewer {
     return this.world.renderer!.three.domElement;
   }
 
-  /** Raycast na posição do ponteiro → localId do elemento (ou null). */
+  /**
+   * Raycast na posição do ponteiro contra TODOS os modelos carregados → localId
+   * do elemento mais próximo (ou null). O modelo atingido vira o `model` ativo,
+   * então select/getItemData/props passam a operar sobre ele.
+   */
   async pickAt(clientX: number, clientY: number): Promise<number | null> {
-    if (!this.model) return null;
     const mouse = new THREE.Vector2(clientX, clientY);
-    const res = await this.model.raycast({
-      camera: this.world.camera.three as THREE.PerspectiveCamera,
-      mouse,
-      dom: this.canvas,
-    });
-    return res?.localId ?? null;
+    const camera = this.world.camera.three as THREE.PerspectiveCamera;
+    let best: { model: FRAGS.FragmentsModel; localId: number; distance: number } | null =
+      null;
+    for (const model of this.fragments.list.values()) {
+      const res = await model.raycast({ camera, mouse, dom: this.canvas });
+      if (res?.localId == null) continue;
+      if (!best || res.distance < best.distance)
+        best = { model, localId: res.localId, distance: res.distance };
+    }
+    if (!best) return null;
+    this.model = best.model;
+    return best.localId;
   }
 
   private async fitToModel() {
