@@ -74,5 +74,8 @@ h.fileInput.addEventListener("change", async () => {
       applyVisibility(hidden, false);
       applyVisibility(visible, true);
     },
+    onSelect: (tasks) => {
+      viewer.highlightElements(tasks);
+    },
   });
 });

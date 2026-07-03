@@ -102,6 +102,25 @@ export class Viewer {
     await this.fragments.core.update(true);
   }
 
+  /** Realça elementos de qualquer modelo (para seleção via Gantt). */
+  async highlightElements(tasks: { model: FRAGS.FragmentsModel; localId: number }[]): Promise<void> {
+    // limpa realce anterior
+    if (this.selected) {
+      await this.selected.model.resetHighlight([this.selected.localId]);
+      this.selected = undefined;
+    }
+    // agrupa por modelo
+    const byModel = new Map<FRAGS.FragmentsModel, number[]>();
+    for (const t of tasks) {
+      (byModel.get(t.model) ?? byModel.set(t.model, []).get(t.model)!).push(t.localId);
+    }
+    for (const [model, ids] of byModel) {
+      await model.highlight(ids, SELECT_MAT);
+    }
+    this.selected = tasks[0];
+    await this.fragments.core.update(true);
+  }
+
   /** Atributos + PSets de um elemento (para o painel de propriedades). */
   async getItemData(localId: number): Promise<any | null> {
     if (!this.model) return null;
