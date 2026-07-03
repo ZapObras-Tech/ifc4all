@@ -4,7 +4,6 @@ dist/
 .DS_Store
 .vite/
 # IFC models são pesados; não versionar por padrão
-*.ifc
 *.frag
 .playwright-mcp/
 ifcMCP/
