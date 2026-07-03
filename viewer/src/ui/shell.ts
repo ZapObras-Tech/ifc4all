@@ -112,6 +112,7 @@ function addResize(panel: HTMLElement, side: "left" | "right" | "bottom"): void 
   if (side === "bottom") {
     handle.classList.add("row", "resize-bottom");
     panel.appendChild(handle);
+    const sidePanels = () => document.querySelectorAll<HTMLElement>(".panel-left, .panel-right");
     handle.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       handle.setPointerCapture(e.pointerId);
@@ -119,9 +120,10 @@ function addResize(panel: HTMLElement, side: "left" | "right" | "bottom"): void 
       const startH = panel.getBoundingClientRect().height;
       const onMove = (ev: PointerEvent) => {
         const dy = startY - ev.clientY;
-        const maxH = 360 - 12 - 5; // 343px: altura dos laterais - offset inferior - gap
-        const h = Math.max(80, Math.min(maxH, startH + dy));
+        const h = Math.max(80, startH + dy);
         panel.style.height = `${h}px`;
+        const sideBottom = 12 + h + 5;
+        for (const s of sidePanels()) s.style.bottom = `${sideBottom}px`;
       };
       const onUp = (ev: PointerEvent) => {
         handle.releasePointerCapture(ev.pointerId);
