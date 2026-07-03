@@ -4,7 +4,6 @@ export interface ShellHandles {
   treeEl: HTMLElement;
   propsEl: HTMLElement;
   fileInput: HTMLInputElement;
-  fileNameEl: HTMLElement;
 }
 
 /**
@@ -23,17 +22,16 @@ export function buildShell(root: HTMLElement): ShellHandles {
   const bar = el("div", "topbar-float");
   const brand = el("span", "brand");
   brand.textContent = "BIM VIEWER";
-  const importLabel = el("label", "btn-import") as HTMLLabelElement;
-  importLabel.textContent = "Importar IFC";
   const fileInput = el("input", "") as HTMLInputElement;
   fileInput.type = "file";
   fileInput.accept = ".ifc";
   fileInput.multiple = true;
   fileInput.hidden = true;
-  importLabel.appendChild(fileInput);
-  const fileName = el("span", "file-name");
-  fileName.textContent = "nenhum modelo carregado";
-  bar.append(brand, importLabel, fileName);
+  const importBtn = el("label", "btn-import-icon") as HTMLLabelElement;
+  importBtn.title = "Importar IFC";
+  importBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`;
+  importBtn.appendChild(fileInput);
+  bar.append(brand, importBtn);
 
   // ---- painel esquerdo: árvore ----
   const left = floatPanel("MODELO IFC", "panel-left", "🗂");
@@ -65,7 +63,7 @@ export function buildShell(root: HTMLElement): ShellHandles {
     bottom.panel, bottom.chip,
   );
 
-  return { viewportEl, ganttEl, treeEl, propsEl, fileInput, fileNameEl: fileName };
+  return { viewportEl, ganttEl, treeEl, propsEl, fileInput };
 }
 
 /**

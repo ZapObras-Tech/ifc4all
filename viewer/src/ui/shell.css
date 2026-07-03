@@ -25,15 +25,20 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   box-shadow: 0 4px 16px rgba(0,0,0,.22);
 }
 .brand { font-weight: 700; letter-spacing: .5px; color: #fff; }
-.btn-import { background: #2563eb; color: #fff; padding: 7px 14px; border-radius: 8px; font-size: 14px; }
-.btn-import:hover { background: #1d4ed8; }
-.file-name { font-size: 13px; color: #cbd5e1; }
+.btn-import-icon {
+  display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 8px;
+  background: #2563eb; color: #fff; cursor: pointer;
+  transition: background .15s;
+}
+.btn-import-icon:hover { background: #1d4ed8; }
 
 /* painéis flutuantes */
+.panel[hidden], .panel-chip[hidden] { display: none !important; }
 .panel {
   position: absolute; z-index: 10;
   display: flex; flex-direction: column;
-  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 5px;
   box-shadow: 0 6px 24px rgba(0,0,0,.16);
   /* overflow removido pro resize handle (absolute) nao ser cortado;
      conteudo do body eh clipado por .panel-body { overflow: hidden } */ }
@@ -75,6 +80,11 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 .resize-bottom { top: 0; }   /* row, borda superior do bottom */
 
 /* árvore */
+.tree-model { border-bottom: 1px solid #f3f4f6; }
+.tree-model-name {
+  padding: 8px 14px; font-size: 13px; font-weight: 700; color: #1e40af;
+  background: #eff6ff; cursor: default;
+}
 .tree-search { margin: 8px 12px; padding: 8px 10px; border: 1px solid #e5e7eb;
   border-radius: 8px; font-size: 13px; flex-shrink: 0; }
 .tree { overflow: auto; flex: 1; padding: 4px 6px; }

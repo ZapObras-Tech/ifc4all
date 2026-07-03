@@ -42,25 +42,25 @@ function applyVisibility(tasks: ElementTask[], visible: boolean) {
 h.fileInput.addEventListener("change", async () => {
   const files = [...(h.fileInput.files ?? [])];
   if (files.length === 0) return;
-  h.fileNameEl.textContent = `carregando ${files.length} modelo(s)…`;
   h.treeEl.innerHTML = "";
 
   const allTasks: ElementTask[] = [];
-  const loaded: string[] = [];
   for (const file of files) {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const model = await viewer.loadIfc(bytes, file.name.replace(/\.ifc$/i, ""));
     if (!model) continue;
-    loaded.push(file.name);
     allTasks.push(...(await buildSchedule(model)));
 
     const spatial = await viewer.getSpatial(model);
     if (spatial) {
-      const sub = document.createElement("div");
-      h.treeEl.appendChild(sub);
-      // Fixa o model ativo antes de selecionar: select/getItemData operam sobre
-      // viewer.model, e cliques na árvore não passam pelo raycast que faria isso.
-      renderTree(sub, spatial, {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tree-model";
+      const header = document.createElement("div");
+      header.className = "tree-model-name";
+      header.textContent = file.name.replace(/\.ifc$/i, "");
+      wrapper.appendChild(header);
+      h.treeEl.appendChild(wrapper);
+      renderTree(wrapper, spatial, {
         onSelect: (localId) => {
           viewer.model = model;
           selectAndShow(localId);
@@ -68,8 +68,6 @@ h.fileInput.addEventListener("change", async () => {
       });
     }
   }
-
-  h.fileNameEl.textContent = loaded.length ? loaded.join(", ") : "falha ao carregar modelo";
 
   gantt.render(h.ganttEl, allTasks, {
     onScrub: (_date, visible, hidden) => {
