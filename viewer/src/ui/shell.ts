@@ -53,6 +53,7 @@ export function buildShell(root: HTMLElement): ShellHandles {
 
   // ---- painel inferior: gantt ----
   const bottom = floatPanel("PLANEJAMENTO - GANTT", "panel-bottom", "📅");
+  addResize(bottom.panel, "bottom");
   const ganttEl = el("section", "gantt");
   bottom.body.append(ganttEl);
 
@@ -105,30 +106,54 @@ function floatPanel(
 }
 
 /**
- * Handle de arraste na borda interna do painel. side="left" → borda direita
- * (painel ancorado à esquerda cresce pra direita); side="right" → borda esquerda.
+ * Handle de arraste na borda do painel. side="left"/"right" → largura
+ * (col-resize); side="bottom" → altura (row-resize).
  */
-function addResize(panel: HTMLElement, side: "left" | "right"): void {
-  const handle = el("div", `panel-resize resize-${side}`);
-  panel.appendChild(handle);
-  handle.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    handle.setPointerCapture(e.pointerId);
-    const startX = e.clientX;
-    const startW = panel.getBoundingClientRect().width;
-    const onMove = (ev: PointerEvent) => {
-      const dx = ev.clientX - startX;
-      const w = side === "left" ? startW + dx : startW - dx;
-      panel.style.width = `${Math.max(200, Math.min(640, w))}px`;
-    };
-    const onUp = (ev: PointerEvent) => {
-      handle.releasePointerCapture(ev.pointerId);
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-  });
+function addResize(panel: HTMLElement, side: "left" | "right" | "bottom"): void {
+  const handle = el("div", "panel-resize");
+  if (side === "bottom") {
+    handle.classList.add("row", "resize-bottom");
+    panel.appendChild(handle);
+    handle.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      const startY = e.clientY;
+      const startH = panel.getBoundingClientRect().height;
+      const onMove = (ev: PointerEvent) => {
+        const dy = startY - ev.clientY;
+        const h = Math.max(80, Math.min(window.innerHeight - 100, startH + dy));
+        panel.style.height = `${h}px`;
+      };
+      const onUp = (ev: PointerEvent) => {
+        handle.releasePointerCapture(ev.pointerId);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  } else {
+    handle.classList.add("col", `resize-${side}`);
+    panel.appendChild(handle);
+    handle.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      const startX = e.clientX;
+      const startW = panel.getBoundingClientRect().width;
+      const onMove = (ev: PointerEvent) => {
+        const dx = ev.clientX - startX;
+        const w = Math.max(200, Math.min(640, side === "left" ? startW + dx : startW - dx));
+        panel.style.width = `${w}px`;
+      };
+      const onUp = (ev: PointerEvent) => {
+        handle.releasePointerCapture(ev.pointerId);
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    });
+  }
 }
 
 function el(tag: string, cls: string): HTMLElement {

@@ -34,8 +34,9 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
   position: absolute; z-index: 10;
   display: flex; flex-direction: column;
   background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.16); overflow: hidden;
-}
+  box-shadow: 0 6px 24px rgba(0,0,0,.16);
+  /* overflow removido pro resize handle (absolute) nao ser cortado;
+     conteudo do body eh clipado por .panel-body { overflow: hidden } */ }
 .panel-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;
@@ -65,11 +66,13 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 
 /* handle de redimensionamento */
 .panel-resize {
-  position: absolute; top: 0; bottom: 0; width: 6px;
-  cursor: col-resize; z-index: 5;
+  position: absolute; z-index: 5;
 }
-.resize-left  { right: -3px; }  /* borda direita do painel esquerdo */
-.resize-right { left: -3px; }   /* borda esquerda do painel direito */
+.panel-resize.col { top: 0; bottom: 0; width: 6px; cursor: col-resize; }
+.panel-resize.row { left: 0; right: 0; height: 6px; cursor: row-resize; }
+.resize-left  { right: 0; }  /* col, borda direita */
+.resize-right { left: 0; }   /* col, borda esquerda */
+.resize-bottom { top: 0; }   /* row, borda superior do bottom */
 
 /* árvore */
 .tree-search { margin: 8px 12px; padding: 8px 10px; border: 1px solid #e5e7eb;
