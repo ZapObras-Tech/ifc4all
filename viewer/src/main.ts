@@ -3,8 +3,9 @@ import { Viewer } from "./ifc/app";
 import { buildSchedule, type ElementTask } from "./ifc/schedule";
 import { Gantt } from "./ui/gantt";
 import { buildShell } from "./ui/shell";
-import { renderProperties } from "./ui/properties";
-import { renderTree } from "./ui/tree";
+import { renderProperties, renderPropertiesMulti } from "./ui/properties";
+import { renderTree, selectNodeById } from "./ui/tree";
+import type { SpatialTreeItem } from "@thatopen/fragments";
 
 const root = document.getElementById("app")!;
 const h = buildShell(root);
@@ -14,8 +15,8 @@ const gantt = new Gantt();
 
 await viewer.init(h.viewportEl);
 
-async function selectAndShow(localId: number) {
-  await viewer.select(localId);
+async function selectAndShow(localId: number, model?: FRAGS.FragmentsModel) {
+  await viewer.select(localId, model);
   const item = await viewer.getItemData(localId);
   renderProperties(h.propsEl, item);
 }
@@ -23,9 +24,7 @@ async function selectAndShow(localId: number) {
 viewer.canvas.addEventListener("click", async (e) => {
   const localId = await viewer.pickAt(e.clientX, e.clientY);
   if (localId == null) return;
-  // ponytail: tree has no "select row by id" API, so a viewport pick only
-  // clears the stale tree highlight instead of re-highlighting the row.
-  h.treeEl.querySelectorAll(".tree-node.selected").forEach((n) => n.classList.remove("selected"));
+  selectNodeById(h.treeEl, localId);
   await selectAndShow(localId);
 });
 
@@ -37,6 +36,14 @@ function applyVisibility(tasks: ElementTask[], visible: boolean) {
     (byModel.get(t.model) ?? byModel.set(t.model, []).get(t.model)!).push(t.localId);
   }
   for (const [model, ids] of byModel) viewer.setElementsVisible(model, ids, visible);
+}
+
+/** Coleta localIds de todos os IfcBuildingStorey na árvore espacial. */
+function collectStoreyIds(item: SpatialTreeItem): number[] {
+  const ids: number[] = [];
+  if (item.category === "IFCBUILDINGSTOREY" && item.localId != null) ids.push(item.localId);
+  for (const c of item.children ?? []) ids.push(...collectStoreyIds(c));
+  return ids;
 }
 
 h.fileInput.addEventListener("change", async () => {
@@ -53,18 +60,28 @@ h.fileInput.addEventListener("change", async () => {
 
     const spatial = await viewer.getSpatial(model);
     if (spatial) {
+      const storeyIds = collectStoreyIds(spatial);
+      const labelMap = new Map<number, string>();
+      if (storeyIds.length) {
+        const data = await model.getItemsData(storeyIds, {
+          attributesDefault: false,
+          attributes: ["Name"],
+        });
+        for (let i = 0; i < storeyIds.length; i++) {
+          const attrs = (data as any[])?.[i]?.attributes;
+          const name = attrs?.Name;
+          if (name) labelMap.set(storeyIds[i], String(name));
+        }
+      }
+
       const wrapper = document.createElement("div");
       wrapper.className = "tree-model";
-      const header = document.createElement("div");
-      header.className = "tree-model-name";
-      header.textContent = file.name.replace(/\.ifc$/i, "");
-      wrapper.appendChild(header);
       h.treeEl.appendChild(wrapper);
-      renderTree(wrapper, spatial, {
+      renderTree(wrapper, file.name, spatial, {
         onSelect: (localId) => {
-          viewer.model = model;
-          selectAndShow(localId);
+          selectAndShow(localId, model);
         },
+        labelMap,
       });
     }
   }
@@ -74,8 +91,27 @@ h.fileInput.addEventListener("change", async () => {
       applyVisibility(hidden, false);
       applyVisibility(visible, true);
     },
-    onSelect: (tasks) => {
+    onSelect: async (tasks) => {
       viewer.highlightElements(tasks);
+      if (tasks.length === 0) {
+        renderPropertiesMulti(h.propsEl, []);
+        return;
+      }
+      const byModel = new Map<FRAGS.FragmentsModel, number[]>();
+      for (const t of tasks) {
+        (byModel.get(t.model) ?? byModel.set(t.model, []).get(t.model)!).push(t.localId);
+      }
+      const allItems: any[] = [];
+      for (const [model, ids] of byModel) {
+        const data = await model.getItemsData(ids, {
+          attributesDefault: true,
+          relations: {
+            IsDefinedBy: { attributes: true, relations: true },
+          },
+        });
+        allItems.push(...(data as any[]));
+      }
+      renderPropertiesMulti(h.propsEl, allItems);
     },
   });
 });

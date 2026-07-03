@@ -24,7 +24,7 @@ export class Viewer {
   world!: OBC.SimpleWorld<OBC.SimpleScene, OBC.SimpleCamera, OBC.SimpleRenderer>;
   /** Modelo ativo: o último carregado, ou o clicado no viewport (ver pickAt). */
   model?: FRAGS.FragmentsModel;
-  private selected?: { model: FRAGS.FragmentsModel; localId: number };
+  private _highlighted = new Map<FRAGS.FragmentsModel, number[]>();
 
   async init(viewport: HTMLElement) {
     const worlds = this.components.get(OBC.Worlds);
@@ -92,32 +92,36 @@ export class Viewer {
     await this.fragments.core.update(true);
   }
 
+  /** Limpa todos os highlights rastreados. */
+  private async clearHighlights() {
+    for (const [model, ids] of this._highlighted) {
+      await model.resetHighlight(ids);
+    }
+    this._highlighted.clear();
+  }
+
   /** Realça um elemento, resetando o realce anterior. */
-  async select(localId: number): Promise<void> {
-    if (!this.model) return;
-    if (this.selected)
-      await this.selected.model.resetHighlight([this.selected.localId]);
-    await this.model.highlight([localId], SELECT_MAT);
-    this.selected = { model: this.model, localId };
+  async select(localId: number, model?: FRAGS.FragmentsModel): Promise<void> {
+    const m = model ?? this.model;
+    if (!m) return;
+    await this.clearHighlights();
+    await m.highlight([localId], SELECT_MAT);
+    this._highlighted.set(m, [localId]);
+    this.model = m;
     await this.fragments.core.update(true);
   }
 
   /** Realça elementos de qualquer modelo (para seleção via Gantt). */
   async highlightElements(tasks: { model: FRAGS.FragmentsModel; localId: number }[]): Promise<void> {
-    // limpa realce anterior
-    if (this.selected) {
-      await this.selected.model.resetHighlight([this.selected.localId]);
-      this.selected = undefined;
-    }
-    // agrupa por modelo
+    await this.clearHighlights();
     const byModel = new Map<FRAGS.FragmentsModel, number[]>();
     for (const t of tasks) {
       (byModel.get(t.model) ?? byModel.set(t.model, []).get(t.model)!).push(t.localId);
     }
     for (const [model, ids] of byModel) {
       await model.highlight(ids, SELECT_MAT);
+      this._highlighted.set(model, ids);
     }
-    this.selected = tasks[0];
     await this.fragments.core.update(true);
   }
 

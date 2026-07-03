@@ -81,10 +81,11 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 
 /* árvore */
 .tree-model { border-bottom: 1px solid #f3f4f6; }
-.tree-model-name {
+.tree-root {
   padding: 8px 14px; font-size: 13px; font-weight: 700; color: #1e40af;
-  background: #eff6ff; cursor: default;
+  background: #eff6ff; cursor: pointer;
 }
+.tree-root:hover { background: #dbeafe; }
 .tree-search { margin: 8px 12px; padding: 8px 10px; border: 1px solid #e5e7eb;
   border-radius: 8px; font-size: 13px; flex-shrink: 0; }
 .tree { overflow: auto; flex: 1; padding: 4px 6px; }
@@ -98,11 +99,38 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 /* propriedades */
 .props { overflow: auto; flex: 1; }
 .props-group { padding: 8px 0; }
-.props-group h4 { margin: 0; padding: 8px 14px; font-size: 12px; color: #6b7280; background: #f9fafb; }
+.props-group h4 { margin: 0; padding: 8px 14px; font-size: 12px; color: #6b7280; background: #f9fafb;
+  display: flex; align-items: center; justify-content: space-between; }
+.btn-csv {
+  font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+  background: #e5e7eb; color: #374151; cursor: pointer; transition: background .15s;
+}
+.btn-csv:hover { background: #d1d5db; }
 .props-row { display: grid; grid-template-columns: 40% 60%; padding: 6px 14px;
   font-size: 13px; border-bottom: 1px solid #f3f4f6; }
 .props-row .k { color: #6b7280; }
 .props-row .v { color: #111827; text-align: right; word-break: break-word; }
+
+/* multi-select nav */
+.props-nav {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+  background: #eff6ff; border-bottom: 1px solid #dbeafe; flex-shrink: 0;
+}
+.props-nav-btn {
+  width: 28px; height: 28px; border-radius: 6px; font-size: 12px;
+  background: #fff; border: 1px solid #bfdbfe; color: #1e40af;
+  display: grid; place-items: center; cursor: pointer; transition: background .15s;
+}
+.props-nav-btn:hover:not(:disabled) { background: #dbeafe; }
+.props-nav-btn:disabled { opacity: .35; cursor: default; }
+.props-nav-counter { font-size: 12px; font-weight: 600; color: #1e40af; min-width: 48px; text-align: center; }
+.props-nav-export {
+  margin-left: auto; font-size: 11px; font-weight: 600; padding: 4px 10px;
+  border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer;
+  transition: background .15s;
+}
+.props-nav-export:hover { background: #1d4ed8; }
+.props-content { flex: 1; overflow: auto; }
 
 /* gantt */
 .gantt { flex: 1; overflow: auto; background: #fff; }
