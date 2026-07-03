@@ -53,7 +53,7 @@ button { font: inherit; cursor: pointer; border: none; background: none; color: 
 .panel-body { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
 .panel-left  { top: 12px; left: 12px; width: 280px; bottom: 360px; }
 .panel-right { top: 12px; right: 12px; width: 320px; bottom: 360px; }
-.panel-bottom { left: 12px; right: 12px; bottom: 12px; height: 336px; }
+.panel-bottom { left: 12px; right: 12px; bottom: 12px; height: 343px; }
 
 /* chip flutuante: aparece no lugar do painel quando minimizado */
 .panel-chip {
