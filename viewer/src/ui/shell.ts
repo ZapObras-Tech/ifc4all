@@ -119,9 +119,7 @@ function addResize(panel: HTMLElement, side: "left" | "right" | "bottom"): void 
       const startH = panel.getBoundingClientRect().height;
       const onMove = (ev: PointerEvent) => {
         const dy = startY - ev.clientY;
-        const GAP = 5;
-        const panelsBottom = window.innerHeight - 360;
-        const maxH = panelsBottom - 12 - GAP;
+        const maxH = 360 - 12 - 5; // 343px: altura dos laterais - offset inferior - gap
         const h = Math.max(80, Math.min(maxH, startH + dy));
         panel.style.height = `${h}px`;
       };
