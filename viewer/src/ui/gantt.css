@@ -1,0 +1,98 @@
+.gantt-toolbar { display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: #fff; z-index: 2; }
+.gantt-tb-left, .gantt-tb-right { display: flex; gap: 6px; }
+.gantt-btn { padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 8px;
+  font-size: 13px; color: #374151; background: #fff; }
+.gantt-btn:hover { background: #f3f4f6; }
+
+/* scroll único: tabela + timeline juntos */
+.gantt-body { overflow: auto; }
+
+/* barra e meses (usados no painel combinado) */
+.gantt-month { position: absolute; top: 8px; font-size: 12px; color: #6b7280;
+  border-left: 1px solid #e5e7eb; padding-left: 4px; }
+.gantt-bar { position: absolute; top: 7px; height: 18px; border-radius: 5px; min-width: 4px; }
+/* summary bar — MS Project style: thin line + downward triangles */
+.gantt-bar-summary-wrap {
+  position: absolute; top: 5px; left: 0; right: 0; height: 22px; pointer-events: none;
+}
+.gantt-bar-summary-line {
+  position: absolute; top: 4px; left: 11px; right: 11px; height: 2px;
+  background: #000;
+}
+.gantt-bar-summary-tri {
+  position: absolute; top: 4px; width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid #000;
+}
+.gantt-bar-summary-tri-start { left: 5px; }
+.gantt-bar-summary-tri-end { right: 5px; }
+
+/* painel combinado (50% info | 50% barras) */
+.gantt-combined { position: relative; }
+.gantt-combined-months { display: flex; height: 40px; border-bottom: 1px solid #f3f4f6;
+  background: #f9fafb; position: sticky; top: 0; z-index: 1; font-size: 13px; color: #6b7280; font-weight: 600; }
+.gantt-combined-months-info { width: 50%; display: flex; align-items: center; padding: 0 8px; }
+.gantt-combined-months-bars { width: 50%; position: relative; height: 100%; }
+.gantt-years-row { position: relative; height: 20px; border-bottom: 1px solid #e5e7eb; }
+.gantt-year-label { position: absolute; top: 2px; font-size: 11px; color: #374151; font-weight: 700;
+  padding-left: 4px; }
+.gantt-initials-row { position: relative; height: 20px; }
+.gantt-month-initial { position: absolute; top: 2px; font-size: 11px; color: #6b7280;
+  border-left: 1px solid #e5e7eb; padding-left: 4px; }
+.gantt-combined-row { display: flex; height: 32px; border-bottom: 1px solid #f3f4f6; }
+.gantt-combined-info { width: 50%; display: flex; align-items: center; min-width: 0;
+  font-size: 13px; overflow: hidden; }
+.gantt-combined-dates { font-size: 11px; color: #9ca3af; margin-left: auto; white-space: nowrap;
+  padding-right: 8px; flex-shrink: 0; }
+.gantt-combined-bars { width: 50%; position: relative; min-width: 0; }
+.gantt-today-combined { position: absolute; top: 40px; bottom: 0; width: 0;
+  border-left: 2px dashed #ef4444; z-index: 0; pointer-events: none; }
+
+/* scrubber */
+.gantt-scrubber { display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-top: 1px solid #e5e7eb; position: sticky; bottom: 0; background: #fff; z-index: 2; }
+.gantt-scrubber input[type="range"] { flex: 1; }
+.gantt-date { font-size: 13px; color: #374151; min-width: 90px; }
+
+.gantt-toggle { background: #eff6ff; border-color: #93c5fd !important; }
+
+/* seleção */
+.gantt-selected { background: #dbeafe !important; }
+.gantt-full-table .gantt-tr.gantt-table-selected { background: #dbeafe !important; }
+.gantt-selected .gantt-bar, .gantt-track.gantt-selected .gantt-bar {
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+/* profundidade hierárquica — tabela antiga (modo tabela completo) */
+.gantt-depth-0 .gantt-tr span:nth-child(2),
+.gantt-depth-0 > span:nth-child(2) { font-weight: 700; color: #1e40af; }
+.gantt-depth-1 .gantt-tr span:nth-child(2),
+.gantt-depth-1 > span:nth-child(2) { font-weight: 600; color: #1d4ed8; }
+.gantt-depth-2 .gantt-tr span:nth-child(2),
+.gantt-depth-2 > span:nth-child(2) { font-weight: 600; color: #2563eb; }
+.gantt-depth-3 .gantt-tr span:nth-child(2),
+.gantt-depth-3 > span:nth-child(2) { font-weight: 500; color: #3b82f6; }
+.gantt-leaf span:nth-child(2) { font-weight: 400; color: #374151; }
+
+/* profundidade hierárquica — painel combinado */
+.gantt-combined-row.gantt-depth-0 .gantt-combined-info > span:nth-child(2) { font-weight: 700; color: #1e40af; }
+.gantt-combined-row.gantt-depth-1 .gantt-combined-info > span:nth-child(2) { font-weight: 600; color: #1d4ed8; }
+.gantt-combined-row.gantt-depth-2 .gantt-combined-info > span:nth-child(2) { font-weight: 600; color: #2563eb; }
+.gantt-combined-row.gantt-depth-3 .gantt-combined-info > span:nth-child(2) { font-weight: 500; color: #3b82f6; }
+.gantt-combined-row.gantt-leaf .gantt-combined-info > span:nth-child(2) { font-weight: 400; color: #374151; }
+
+.gantt-full-table { overflow-y: auto; display: flex; flex-direction: column; }
+  .gantt-full-table .gantt-tr { display: grid; grid-template-columns: 40px 1fr 1fr 1fr 1fr 90px 1fr 90px 90px 50px;
+    border-bottom: 1px solid #e5e7eb; }
+  .gantt-full-table .gantt-tr > span { padding: 6px 8px; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; font-size: 13px; }
+  .gantt-full-table .gantt-tr:hover { background: #f9fafb; }
+  .gantt-full-table .gantt-tr:nth-child(even) { background: #fafafa; }
+  .gantt-full-table .gantt-tr:nth-child(even):hover { background: #f3f4f6; }
+.gantt-full-table .gantt-th { position: sticky; top: 0; z-index: 1; background: #f9fafb;
+  font-weight: 600; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;
+  border-bottom: 2px solid #e5e7eb; }
+.gantt-full-table .gantt-th > span { border-right: 1px solid #e5e7eb; }
+.gantt-full-table .gantt-th > span:last-child { border-right: none; }
